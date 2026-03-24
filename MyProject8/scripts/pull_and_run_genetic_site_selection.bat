@@ -18,7 +18,8 @@ if not exist "%PROPY%" (
 
 cd /d "%REPO_DIR%"
 echo [INFO] Pulling latest code...
-git pull --ff-only || exit /b 1
+git fetch origin main || exit /b 1
+git merge --ff-only origin/main || exit /b 1
 
 echo [INFO] Syncing runtime workspace...
 robocopy "%REPO_DIR%" "%RUNTIME_DIR%" /MIR /XD ".git" >nul
