@@ -18,8 +18,10 @@ if not exist "%PROPY%" (
 
 cd /d "%REPO_DIR%"
 echo [INFO] Pulling latest code...
-git fetch origin main || exit /b 1
-git merge --ff-only origin/main || exit /b 1
+git fetch origin main
+if errorlevel 1 exit /b 1
+git merge --ff-only origin/main
+if errorlevel 1 exit /b 1
 
 echo [INFO] Syncing runtime workspace...
 robocopy "%REPO_DIR%" "%RUNTIME_DIR%" /MIR /XD ".git" >nul
@@ -50,7 +52,9 @@ git add artifacts
 git diff --cached --quiet -- artifacts
 if errorlevel 1 (
     git commit -m "chore: update site selection artifacts"
-    git push origin main || exit /b 1
+    if errorlevel 1 exit /b 1
+    git push origin main
+    if errorlevel 1 exit /b 1
 ) else (
     echo [INFO] No artifact changes to commit.
 )

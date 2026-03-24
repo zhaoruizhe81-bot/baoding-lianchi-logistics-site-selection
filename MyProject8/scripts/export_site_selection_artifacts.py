@@ -16,8 +16,8 @@ from __future__ import annotations
 
 import argparse
 import csv
+import datetime as dt
 import re
-from datetime import datetime
 from pathlib import Path
 
 import arcpy
@@ -147,7 +147,7 @@ def write_summary(
     lines = [
         "# 选址结果摘要",
         "",
-        f"- 导出时间：{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+        f"- 导出时间：{dt.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
         f"- 推荐站点数量：{len(recommended_rows)}",
         f"- 最佳站点数量：{len(best_rows)}",
     ]
