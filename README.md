@@ -146,7 +146,13 @@ python MyProject8/scripts/genetic_site_selection.py --project-dir MyProject8
 MyProject8\scripts\pull_and_run_genetic_site_selection.bat
 ```
 
-这个批处理会自动 `git pull --ff-only`，然后调用 ArcGIS Pro 自带的 `propy.bat` 执行遗传算法脚本。
+这个批处理会自动：
+
+- 在 `D:\project\baoding-lianchi-logistics-site-selection` 执行 `git pull --ff-only`
+- 用 `robocopy` 把仓库镜像到 `D:\project\baoding-lianchi-logistics-site-selection-runtime`
+- 在 runtime 副本里调用 ArcGIS Pro 自带的 `propy.bat`
+
+这样可以避免 ArcGIS 在运行时直接改脏 Git 仓库里的 `.gdb` 文件，后续继续 `pull` 新代码时会稳定很多。
 
 ## 分析思路
 
