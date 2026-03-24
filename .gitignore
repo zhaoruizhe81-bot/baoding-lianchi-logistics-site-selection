@@ -1,0 +1,10 @@
+.DS_Store
+**/.DS_Store
+
+MyProject8/.backups/
+MyProject8/GpMessages/
+MyProject8/ImportLog/
+MyProject8/Index/
+MyProject8/scripts/__pycache__/
+
+MyProject8/*.baiduyun.uploading.cfg
