@@ -8,6 +8,7 @@
 
 - [`MyProject8/scripts/auto_select_sites.py`](/Users/zhaoruizhe/Desktop/project/T/MyProject8/MyProject8/scripts/auto_select_sites.py)：按规则排序的自动选址流程
 - [`MyProject8/scripts/genetic_site_selection.py`](/Users/zhaoruizhe/Desktop/project/T/MyProject8/MyProject8/scripts/genetic_site_selection.py)：基于遗传算法的启发式选址流程
+- [`MyProject8/scripts/export_site_selection_artifacts.py`](/Users/zhaoruizhe/Desktop/project/T/MyProject8/MyProject8/scripts/export_site_selection_artifacts.py)：自动导出地图、PDF、结果表和摘要
 
 ## 项目概述
 
@@ -58,6 +59,7 @@
     ├── scripts/
     │   ├── auto_select_sites.py     # 规则排序选址脚本
     │   ├── genetic_site_selection.py # 遗传算法选址脚本
+    │   ├── export_site_selection_artifacts.py # 导出 PDF/PNG/CSV/摘要
     │   └── pull_and_run_genetic_site_selection.bat # Windows 端同步并执行
     ├── 地图.tif                     # 地图成果导出
     └── 布局2.tif                    # 布局成果导出
@@ -151,8 +153,24 @@ MyProject8\scripts\pull_and_run_genetic_site_selection.bat
 - 在 `D:\project\baoding-lianchi-logistics-site-selection` 执行 `git pull --ff-only`
 - 用 `robocopy` 把仓库镜像到 `D:\project\baoding-lianchi-logistics-site-selection-runtime`
 - 在 runtime 副本里调用 ArcGIS Pro 自带的 `propy.bat`
+- 导出 `CSV / PDF / PNG / Markdown` 成果文件
+- 把导出结果同步回源仓库的 `artifacts/latest`
+- 自动提交并推送到 GitHub
 
 这样可以避免 ArcGIS 在运行时直接改脏 Git 仓库里的 `.gdb` 文件，后续继续 `pull` 新代码时会稳定很多。
+
+导出的成果默认位于：
+
+- Windows runtime：`D:\project\baoding-lianchi-logistics-site-selection-runtime\artifacts\latest`
+- Git 仓库同步目录：`artifacts/latest`
+
+同步后的主要文件包括：
+
+- `artifacts/latest/recommended_sites.csv`
+- `artifacts/latest/best_site.csv`
+- `artifacts/latest/summary.md`
+- `artifacts/latest/*.pdf`
+- `artifacts/latest/*.png`
 
 ## 分析思路
 
