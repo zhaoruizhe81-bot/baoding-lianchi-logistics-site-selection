@@ -150,7 +150,7 @@ MyProject8\scripts\pull_and_run_genetic_site_selection.bat
 
 这个批处理会自动：
 
-- 在 `D:\project\baoding-lianchi-logistics-site-selection` 执行 `git pull --ff-only`
+- 在 `D:\project\baoding-lianchi-logistics-site-selection` 执行 `git fetch origin main` 和 `git merge --ff-only origin/main`
 - 用 `robocopy` 把仓库镜像到 `D:\project\baoding-lianchi-logistics-site-selection-runtime`
 - 在 runtime 副本里调用 ArcGIS Pro 自带的 `propy.bat`
 - 导出 `CSV / PDF / PNG / Markdown` 成果文件
@@ -201,6 +201,32 @@ MyProject8\scripts\pull_and_run_genetic_site_selection.bat
 
 ![地图预览](docs/map-preview.jpg)
 ![布局预览](docs/layout-preview.jpg)
+
+## 最新成果
+
+当前仓库已经包含一次真实自动化运行后的导出成果，位于 [`artifacts/latest`](/Users/zhaoruizhe/Desktop/project/T/MyProject8/artifacts/latest)：
+
+- [`artifacts/latest/summary.md`](/Users/zhaoruizhe/Desktop/project/T/MyProject8/artifacts/latest/summary.md)
+- [`artifacts/latest/recommended_sites.csv`](/Users/zhaoruizhe/Desktop/project/T/MyProject8/artifacts/latest/recommended_sites.csv)
+- [`artifacts/latest/best_site.csv`](/Users/zhaoruizhe/Desktop/project/T/MyProject8/artifacts/latest/best_site.csv)
+- [`artifacts/latest/布局2.pdf`](/Users/zhaoruizhe/Desktop/project/T/MyProject8/artifacts/latest/布局2.pdf)
+- [`artifacts/latest/布局2.png`](/Users/zhaoruizhe/Desktop/project/T/MyProject8/artifacts/latest/布局2.png)
+- [`artifacts/latest/标题栏-A4-横向.pdf`](/Users/zhaoruizhe/Desktop/project/T/MyProject8/artifacts/latest/标题栏-A4-横向.pdf)
+- [`artifacts/latest/标题栏-A4-横向.png`](/Users/zhaoruizhe/Desktop/project/T/MyProject8/artifacts/latest/标题栏-A4-横向.png)
+
+本次导出结果摘要如下：
+
+- 导出时间：`2026-03-25 01:05:13`
+- 推荐站点数量：`2`
+- 最佳站点数量：`1`
+- 最佳适应度：`0.8292316164704396`
+- 最佳站点编号：`3`
+- 最佳站点评分：`0.8300198443570483`
+
+推荐站点明细：
+
+- 排名 1：候选点 `3`，综合评价 `400`，高速距离 `1655.0444`，主干路距离 `58.0583`
+- 排名 2：候选点 `8`，综合评价 `400`，高速距离 `2246.9694`，主干路距离 `13.5574`
 
 ## 适用场景
 
