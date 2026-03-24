@@ -1,5 +1,5 @@
 @echo off
-setlocal
+setlocal EnableDelayedExpansion
 
 set "REPO_DIR=D:\project\baoding-lianchi-logistics-site-selection"
 set "RUNTIME_DIR=D:\project\baoding-lianchi-logistics-site-selection-runtime"
@@ -48,6 +48,25 @@ if errorlevel 8 (
 
 echo [INFO] Publishing artifacts to GitHub...
 cd /d "%REPO_DIR%"
+
+set "GH_LOGIN="
+set "GIT_USER_NAME="
+set "GIT_USER_EMAIL="
+for /f "delims=" %%i in ('git config user.name 2^>nul') do set "GIT_USER_NAME=%%i"
+for /f "delims=" %%i in ('git config user.email 2^>nul') do set "GIT_USER_EMAIL=%%i"
+if not defined GIT_USER_NAME (
+    for /f "delims=" %%i in ('gh api user -q .login 2^>nul') do set "GH_LOGIN=%%i"
+    if not defined GH_LOGIN set "GH_LOGIN=automation-bot"
+    git config user.name "!GH_LOGIN!"
+)
+if not defined GIT_USER_EMAIL (
+    if not defined GH_LOGIN (
+        for /f "delims=" %%i in ('gh api user -q .login 2^>nul') do set "GH_LOGIN=%%i"
+    )
+    if not defined GH_LOGIN set "GH_LOGIN=automation-bot"
+    git config user.email "!GH_LOGIN!@users.noreply.github.com"
+)
+
 git add artifacts
 git diff --cached --quiet -- artifacts
 if errorlevel 1 (
