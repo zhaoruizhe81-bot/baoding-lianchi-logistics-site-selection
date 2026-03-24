@@ -4,6 +4,11 @@
 
 该仓库不是一个纯代码项目，而是一个完整的 GIS 工程归档，包含 ArcGIS Pro 工程文件、地理数据库、布局成果图和自动化选址脚本，适合用于课程设计、GIS 实训、空间分析案例展示和二次扩展开发。
 
+当前仓库已经包含两条自动化路线：
+
+- [`MyProject8/scripts/auto_select_sites.py`](/Users/zhaoruizhe/Desktop/project/T/MyProject8/MyProject8/scripts/auto_select_sites.py)：按规则排序的自动选址流程
+- [`MyProject8/scripts/genetic_site_selection.py`](/Users/zhaoruizhe/Desktop/project/T/MyProject8/MyProject8/scripts/genetic_site_selection.py)：基于遗传算法的启发式选址流程
+
 ## 项目概述
 
 - 研究区：保定市莲池区
@@ -51,7 +56,9 @@
     ├── MyProject8.atbx              # ArcGIS 工具箱
     ├── MyProject8.gdb/              # 工程核心空间数据
     ├── scripts/
-    │   └── auto_select_sites.py     # 自动选址脚本
+    │   ├── auto_select_sites.py     # 规则排序选址脚本
+    │   ├── genetic_site_selection.py # 遗传算法选址脚本
+    │   └── pull_and_run_genetic_site_selection.bat # Windows 端同步并执行
     ├── 地图.tif                     # 地图成果导出
     └── 布局2.tif                    # 布局成果导出
 ```
@@ -104,6 +111,43 @@ python scripts/auto_select_sites.py --project-dir "D:\\path\\to\\MyProject8"
 - `--top-n`：输出推荐点数量，默认 `5`
 - `--no-existing-candidates`：忽略已有 `备选点`，直接自动生成候选点
 
+### 3. 运行遗传算法选址脚本
+
+如果你希望从候选地块中自动搜索一组更优站点，而不是只对已有点排序，可以执行：
+
+```bash
+python MyProject8/scripts/genetic_site_selection.py --project-dir MyProject8
+```
+
+常用参数：
+
+- `--num-sites`：选择站点数量，默认 `3`
+- `--random-points`：自动生成的随机候选点数量，默认 `80`
+- `--population-size`：遗传算法种群规模，默认 `60`
+- `--generations`：遗传算法迭代代数，默认 `80`
+- `--mutation-rate`：变异概率，默认 `0.18`
+- `--min-site-distance`：站点最小间距约束，默认 `1200`
+- `--weight-suitability`：综合评价值权重
+- `--weight-area`：候选地块面积权重
+- `--weight-expressway`：到高速距离权重
+- `--weight-major-road`：到二级以上公路距离权重
+
+脚本会在 geodatabase 中输出：
+
+- `候选地块_GA`
+- `候选点_GA_池`
+- `候选点_GA_评价`
+- `遗传算法推荐选址点`
+- `遗传算法最佳选址点`
+
+如果你在 Windows 上已经把仓库克隆到 `D:\project\baoding-lianchi-logistics-site-selection`，还可以直接运行：
+
+```bat
+MyProject8\scripts\pull_and_run_genetic_site_selection.bat
+```
+
+这个批处理会自动 `git pull --ff-only`，然后调用 ArcGIS Pro 自带的 `propy.bat` 执行遗传算法脚本。
+
 ## 分析思路
 
 从当前工程组织方式可以看出，本项目采用的是较典型的多因子综合评价 + 候选点筛选路线：
@@ -114,7 +158,13 @@ python scripts/auto_select_sites.py --project-dir "D:\\path\\to\\MyProject8"
 - 第四步：将高适宜区转为候选面，剔除面积过小的零散斑块。
 - 第五步：结合已有候选点或自动生成点，进一步基于道路距离和评价值输出最终推荐位置。
 
-这种做法比较适合教学展示，因为既保留了 ArcGIS Pro 可视化制图过程，也具备一定自动化和复用能力。
+其中遗传算法版本在规则排序之外又加了一层启发式搜索：
+
+- 先把已有备选点、候选地块质心和随机候选点合并成候选点池。
+- 再按综合评价值、地块面积、到高速距离、到主干路距离构造单点得分。
+- 最后用遗传算法搜索满足最小站点间距约束的最优站点组合。
+
+这种做法更适合你要的“纯 Python 自动化选址”，因为它可以直接命令行运行，也方便后续继续调参数和批量实验。
 
 ## 当前工程成果
 
