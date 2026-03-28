@@ -1,0 +1,3 @@
+﻿scheme,site_count,avg_suit_val,avg_area_m2,avg_dist_gs_m,avg_dist_gl_m,avg_cost_proxy,avg_distance_proxy,avg_suitability_score,site_names
+原始方案,1,375.0,20202131.685376562,2392.3877142195024,10.69310297279052,0.5,0.1597086336009864,0.9375,适宜地址1
+多目标优化方案,1,400.0,20202131.685376562,1753.389922255637,0.570029458343683,0.5,0.10789221753429944,1.0,候选点28
