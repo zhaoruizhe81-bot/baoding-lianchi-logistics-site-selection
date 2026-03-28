@@ -66,17 +66,28 @@ def existing_field_name(feature_class: str, field_candidates: list[str]) -> str 
 
 def load_candidate_records(evaluated_fc: str) -> list[dict]:
     name_field = existing_field_name(evaluated_fc, ["名称", "name"])
-    fields = ["ga_cand_id", "SHAPE@", "suit_val", "area_m2", "dist_gs_m", "dist_gl_m"]
+    area_field = existing_field_name(evaluated_fc, ["area_m2_1", "area_m2"])
+    fields = ["ga_cand_id", "SHAPE@", "suit_val"]
+    if area_field:
+        fields.append(area_field)
+    fields.extend(["dist_gs_m", "dist_gl_m"])
     if name_field:
         fields.append(name_field)
 
     records: list[dict] = []
     with arcpy.da.SearchCursor(evaluated_fc, fields) as cursor:
         for row in cursor:
-            if name_field:
+            if area_field and name_field:
                 ga_cand_id, geometry, suit_val, area_m2, dist_gs_m, dist_gl_m, source_name = row
-            else:
+            elif area_field:
                 ga_cand_id, geometry, suit_val, area_m2, dist_gs_m, dist_gl_m = row
+                source_name = None
+            elif name_field:
+                ga_cand_id, geometry, suit_val, dist_gs_m, dist_gl_m, source_name = row
+                area_m2 = None
+            else:
+                ga_cand_id, geometry, suit_val, dist_gs_m, dist_gl_m = row
+                area_m2 = None
                 source_name = None
             if geometry is None:
                 continue
@@ -526,7 +537,7 @@ def main() -> None:
     parser.add_argument("--threshold-value", type=float, default=None)
     parser.add_argument("--threshold-ratio", type=float, default=DEFAULTS["threshold_ratio"])
     parser.add_argument("--min-area", type=float, default=DEFAULTS["min_area"])
-    parser.add_argument("--num-sites", type=int, default=DEFAULTS["num_sites"])
+    parser.add_argument("--num-sites", type=int, default=None)
     parser.add_argument("--random-points", type=int, default=DEFAULTS["random_points"])
     parser.add_argument("--population-size", type=int, default=DEFAULTS["population_size"])
     parser.add_argument("--generations", type=int, default=DEFAULTS["generations"])
@@ -600,9 +611,13 @@ def main() -> None:
         )
 
         records = load_candidate_records(evaluated_fc)
-        if len(records) < args.num_sites:
-            message(f"候选点数量不足 {args.num_sites} 个，已自动调整为 {len(records)} 个。")
-        site_count = min(args.num_sites, len(records))
+        original_candidates = [record for record in records if record.get("source_name")]
+        requested_site_count = args.num_sites if args.num_sites is not None else (
+            len(original_candidates) if original_candidates else DEFAULTS["num_sites"]
+        )
+        if len(records) < requested_site_count:
+            message(f"候选点数量不足 {requested_site_count} 个，已自动调整为 {len(records)} 个。")
+        site_count = min(requested_site_count, len(records))
 
         best_indices, compromise_score, pareto_front, objective_cache = run_multiobjective_genetic_algorithm(
             records=records,
