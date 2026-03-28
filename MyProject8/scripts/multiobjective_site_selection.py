@@ -329,6 +329,10 @@ def run_multiobjective_genetic_algorithm(
             }
         )
         rank, crowding, fronts = rank_population(population, objective_cache)
+        for chromosome in population:
+            key = tuple(chromosome)
+            rank.setdefault(key, len(fronts))
+            crowding.setdefault(key, 0.0)
         last_fronts = fronts
 
         if fronts:
