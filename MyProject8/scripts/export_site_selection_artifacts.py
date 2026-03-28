@@ -33,6 +33,8 @@ DEFAULTS = {
     "layouts": "布局2,布局,标题栏 A4 横向",
 }
 
+OLD_POINT_LAYER_NAMES = ("备选点",)
+
 
 def message(text: str) -> None:
     arcpy.AddMessage(text)
@@ -74,6 +76,49 @@ def get_layouts(aprx: arcpy.mp.ArcGISProject, names: list[str]) -> list:
     return all_layouts
 
 
+def existing_field_name(feature_class: str, field_candidates: list[str]) -> str | None:
+    fields = {field.name.upper(): field.name for field in arcpy.ListFields(feature_class)}
+    for candidate in field_candidates:
+        match = fields.get(candidate.upper())
+        if match:
+            return match
+    return None
+
+
+def hide_layers(map_obj, layer_names: tuple[str, ...]) -> None:
+    for layer_name in layer_names:
+        for layer in map_obj.listLayers(layer_name):
+            layer.visible = False
+
+
+def apply_simple_renderer(
+    layer,
+    *,
+    label: str,
+    color: dict,
+    size: float,
+    outline_color: dict | None = None,
+    outline_width: float | None = None,
+) -> None:
+    if not getattr(layer, "isFeatureLayer", False):
+        return
+
+    sym = layer.symbology
+    if not hasattr(sym, "renderer"):
+        return
+    if sym.renderer.type != "SimpleRenderer":
+        sym.updateRenderer("SimpleRenderer")
+
+    sym.renderer.label = label
+    sym.renderer.symbol.color = color
+    sym.renderer.symbol.size = size
+    if outline_color is not None:
+        sym.renderer.symbol.outlineColor = outline_color
+    if outline_width is not None:
+        sym.renderer.symbol.outlineWidth = outline_width
+    layer.symbology = sym
+
+
 def ensure_result_layers(
     aprx: arcpy.mp.ArcGISProject,
     map_name: str,
@@ -84,6 +129,8 @@ def ensure_result_layers(
     map_matches = aprx.listMaps(map_name)
     map_obj = map_matches[0] if map_matches else aprx.listMaps()[0]
 
+    hide_layers(map_obj, OLD_POINT_LAYER_NAMES)
+
     for layer_name in ["候选地块_GA", "遗传算法推荐选址点", "遗传算法最佳选址点"]:
         for layer in map_obj.listLayers(layer_name):
             map_obj.removeLayer(layer)
@@ -91,6 +138,35 @@ def ensure_result_layers(
     map_obj.addDataFromPath(candidate_polygon_path)
     map_obj.addDataFromPath(recommended_path)
     map_obj.addDataFromPath(best_path)
+
+    candidate_layer = map_obj.listLayers("候选地块_GA")[0]
+    recommended_layer = map_obj.listLayers("遗传算法推荐选址点")[0]
+    best_layer = map_obj.listLayers("遗传算法最佳选址点")[0]
+
+    apply_simple_renderer(
+        candidate_layer,
+        label="候选地块",
+        color={"RGB": [255, 230, 140, 25]},
+        outline_color={"RGB": [255, 140, 0, 100]},
+        outline_width=1.5,
+        size=1.5,
+    )
+    apply_simple_renderer(
+        recommended_layer,
+        label="遗传算法推荐点",
+        color={"RGB": [255, 170, 0, 100]},
+        outline_color={"RGB": [90, 45, 0, 100]},
+        outline_width=1.8,
+        size=14,
+    )
+    apply_simple_renderer(
+        best_layer,
+        label="遗传算法最佳点",
+        color={"RGB": [220, 20, 60, 100]},
+        outline_color={"RGB": [255, 255, 255, 100]},
+        outline_width=2.2,
+        size=18,
+    )
 
 
 def export_layouts(aprx: arcpy.mp.ArcGISProject, output_dir: Path, layout_names: list[str]) -> list[Path]:
@@ -107,10 +183,19 @@ def export_layouts(aprx: arcpy.mp.ArcGISProject, output_dir: Path, layout_names:
 
 
 def feature_class_to_rows(feature_class: str) -> list[dict]:
-    fields = ["ga_rank", "ga_cand_id", "ga_score", "ga_fit", "suit_val", "area_m2", "dist_gs_m", "dist_gl_m", "SHAPE@XY"]
+    area_field = existing_field_name(feature_class, ["area_m2_1", "area_m2"])
+    fields = ["ga_rank", "ga_cand_id", "ga_score", "ga_fit", "suit_val"]
+    if area_field:
+        fields.append(area_field)
+    fields.extend(["dist_gs_m", "dist_gl_m", "SHAPE@XY"])
     rows: list[dict] = []
     with arcpy.da.SearchCursor(feature_class, fields) as cursor:
-        for ga_rank, ga_cand_id, ga_score, ga_fit, suit_val, area_m2, dist_gs_m, dist_gl_m, xy in cursor:
+        for row in cursor:
+            if area_field:
+                ga_rank, ga_cand_id, ga_score, ga_fit, suit_val, area_m2, dist_gs_m, dist_gl_m, xy = row
+            else:
+                ga_rank, ga_cand_id, ga_score, ga_fit, suit_val, dist_gs_m, dist_gl_m, xy = row
+                area_m2 = None
             x_value, y_value = xy if xy else (None, None)
             rows.append(
                 {
